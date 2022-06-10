@@ -8,6 +8,18 @@ This simple Node.JS app comes with built-in "feature" behaviors - meaning - if y
 | 2 | 50% Failure Rate of /api/invoke | Red |
 | 3 | Higher response times all requests | Yellow |
 
+# Dynatrace
+
+The demo app will put into the response a header called `FeatureNumber`.  With this, a Dynatrace [request attribute](https://www.dynatrace.com/support/help/how-to-use-dynatrace/services/request-attributes/capture-request-attributes-based-on-web-request-data) 
+
+Shown below is the setup for Dynatrace request attributes. 
+
+![app](img/dt-ra-setup.png)
+
+Dynatrace request attributes then allow the [Custom multidimensional analysis](https://www.dynatrace.com/support/help/how-to-use-dynatrace/diagnostics/multidimensional-analysis).
+
+![app](img/dt-analysis.png)
+
 # Features
 
 The application uses a default image of `img/banner.png`.  This can be overwritten by setting the `BANNER_IMAGE` environment variable to a file in the `img` folder or using a URL.
