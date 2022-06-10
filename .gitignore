@@ -4,3 +4,4 @@
 *.log
 LOCAL_NOTES/
 openfeature/
+node_modules/
