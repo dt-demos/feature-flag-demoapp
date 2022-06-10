@@ -1,0 +1,6 @@
+.DS_Store
+.project
+.settings
+*.log
+LOCAL_NOTES/
+openfeature/

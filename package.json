@@ -1,0 +1,11 @@
+{
+    "name": "DemoNodeJsApp",
+    "version": "0.0.1",
+    "private": true,
+    "dependencies": {
+        "launchdarkly-node-server-sdk": "^6.4.2"
+    },
+    "scripts": {
+        "start": "node demoapp.js"
+    }
+}
