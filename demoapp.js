@@ -1,8 +1,6 @@
 // Thanks to Andi Grabner (https://github.com/grabnerandi/simplenodeservice) 
 // for the original application concept and code!
 
-var LaunchDarkly = require('launchdarkly-node-server-sdk');
-
 var port = process.env.PORT || 8080,
     http = require('http'),
     fs = require('fs'),
@@ -290,9 +288,14 @@ var server = http.createServer(function (req, res) {
 init(null);
 
 // Feature Flag Provider Logic
-// Assumes a flag called `demoapp-feature` defined with boolean of true/false
+
 switch(featureFlagProvider) {
 	case "launchdarkly":
+
+		// Assumes a LaunchDarkly flag called `demoapp-feature` defined with boolean of true/false
+		// and on value = true
+		var LaunchDarkly = require('launchdarkly-node-server-sdk');
+
 		console.log("Initialize LaunchDarkly local client");
 		const ldClient = LaunchDarkly.init(featureFlagSdkKey);
 		const user = {
