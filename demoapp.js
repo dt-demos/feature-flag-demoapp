@@ -8,6 +8,8 @@ var port = process.env.PORT || 8080,
 	path = require('path'),
 	urlModule = require('url'),
 	html = fs.readFileSync(__dirname + '/index.html').toString();
+	userName = "";
+	userKey="";
 
 // ======================================================================
 // Here are some global config entries that change the behavior of the app
@@ -132,10 +134,10 @@ var server = http.createServer(function (req, res) {
             } else if (req.url = '/scheduled') {
                 //console.log('Received task ' + req.headers['x-aws-sqsd-taskname'] + ' scheduled at ' + req.headers['x-aws-sqsd-scheduled-at']);
             }
-
             res.writeHead(200, 'OK', {
 				'Content-Type': 'text/plain',
-				'FeatureNumber': featureNumber
+				'FeatureNumber': featureNumber,
+				'userKey': userKey
 				});
             res.end();
         });
@@ -198,12 +200,12 @@ var server = http.createServer(function (req, res) {
 					var body = Buffer.concat(bodyChunks);
 					//console.log('BODY: ' + body);
 					status = "Request to '" + url.query["url"] + "' returned with HTTP Status: " + getResponse.statusCode + " and response body length: " + body.length;
-					res.writeHead(returnStatusCode, returnStatusCode == 200 ? 'OK' : 'ERROR', {'Content-Type': 'text/plain','FeatureNumber': featureNumber});	
+					res.writeHead(returnStatusCode, returnStatusCode == 200 ? 'OK' : 'ERROR', {'Content-Type': 'text/plain','FeatureNumber': featureNumber,'userKey': userKey});	
 					res.write(status);
 					res.end();
 				}).on('error', function(error) {
 					status = "Request to '" + url.query["url"] + "' returned in an error: " + error;
-					res.writeHead(returnStatusCode, returnStatusCode == 200 ? 'OK' : 'ERROR', {'Content-Type': 'text/plain','FeatureNumber': featureNumber});	
+					res.writeHead(returnStatusCode, returnStatusCode == 200 ? 'OK' : 'ERROR', {'Content-Type': 'text/plain','FeatureNumber': featureNumber,'userKey': userKey});	
 					res.write(status);
 					res.end();
 					console.log(status);				
@@ -234,12 +236,13 @@ var server = http.createServer(function (req, res) {
 
 		// only close response handler if we are done with work!
 		if(closeResponse) {
-		   res.writeHead(200, 'OK', {
-			   'Content-Type': 'text/plain',
-			   'FeatureNumber': featureNumber
-			});	
-		   res.write(status);
-		   res.end();
+			res.writeHead(200, 'OK', {
+				'Content-Type': 'text/plain',
+				'FeatureNumber': featureNumber,
+				'userKey': userKey
+				});	
+			res.write(status);
+			res.end();
 		}
 	}
 	else if (typeof mimeMap[extName] !== 'undefined')
@@ -258,10 +261,17 @@ var server = http.createServer(function (req, res) {
 	}
 	else
 	{
+		getUser();
+
+		var myCookie = "connect.sid=" + userKey;
+		res.setHeader('Set-Cookie', [myCookie]);
 		res.writeHead(200, 'OK', {
 			'Content-Type': 'text/html',
-			'FeatureNumber': featureNumber
+			'FeatureNumber': featureNumber,
+			'userKey': userKey
 		});
+
+		getFeature();
 
 		// this will hide the option to set the feature flag if using Feature Flag Provider
 		if (featureFlagProvider != null) {
@@ -284,25 +294,29 @@ var server = http.createServer(function (req, res) {
 	}
 });
 
-// first we initialize!
-init(null);
+function getUser() {
+	const min = 1;
+	const max = 10;
+	var randUserId = Math.floor(Math.random() * (max - min + 1) + min);
+	userName = "User " + randUserId.toString();
+	userKey = "user" + randUserId.toString();
+}
 
 // Feature Flag Provider Logic
-
-switch(featureFlagProvider) {
+function getFeature() {
+	switch(featureFlagProvider) {
 	case "launchdarkly":
 
 		// Assumes a LaunchDarkly flag called `demoapp-feature` defined with boolean of true/false
 		// and on value = true
 		var LaunchDarkly = require('launchdarkly-node-server-sdk');
-
-		console.log("Initialize LaunchDarkly local client");
+		console.log("Initialize LaunchDarkly local client. User = " + userName);
 		const ldClient = LaunchDarkly.init(featureFlagSdkKey);
 		const user = {
-			"key": "example-user-key",
-			"name": "Sandy"
+			"key": userKey,
+			"name": userName
 		};
-
+		console.log(user);
 		ldClient.on('update:demoapp-feature', (param) => {
 			ldClient.variation("demoapp-feature", user, false, function(err, showFeature) {
 				console.log('LaunchDarkly demoapp-feature flag was changed. Flag value: ' +  showFeature);
@@ -317,8 +331,12 @@ switch(featureFlagProvider) {
 		});
 
 		break;
+	}
 }
   
+// first we initialize!
+init(null);
+
 // Listen on port 80, IP defaults to 127.0.0.1
 server.listen(port);
 
